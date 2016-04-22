@@ -1,0 +1,41 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.qmr777.exchange.fragment.Fragment4">
+
+    <!-- TODO: Update blank fragment layout -->
+    <!--head layout-->
+    <LinearLayout
+        android:background="@android:color/holo_blue_bright"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="120dp">
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:src="@mipmap/ic_launcher"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="50dp"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:id="@+id/iv_avatar"/>
+
+        <TextView
+            android:id="@+id/tv_username"
+            android:layout_marginStart="120dp"
+            android:text="username"
+            android:textSize="24sp"
+            android:layout_gravity="center_vertical"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+    </LinearLayout>
+
+    <ListView
+        android:id="@+id/lv_my_status"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+    </ListView>
+
+</LinearLayout>
