@@ -9,13 +9,11 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ListView;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
@@ -50,6 +48,10 @@ public class Fragment2 extends Fragment {
     public Fragment2() {
     }
 
+    @Override
+    public void onHiddenChanged(boolean hidden) {
+        super.onHiddenChanged(hidden);
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -97,12 +99,16 @@ public class Fragment2 extends Fragment {
                 Log.d("Fragment2","click");
                 Intent intent = new Intent(getActivity(),BookMsgAty.class);
                 intent.putExtra("isbn",nearBook.getData().get(position).getIsbn13());
+                if (myApplication.ifLogin())
+                    intent.putExtra("needFavorite", true);
                 startActivity(intent);
             }
 
             @Override
             public void onLongClick(View view, int position) {
-
+                Toast.makeText(getActivity(), "暂不显示" + nearBook.getData().get(position).getTitle(), Toast.LENGTH_LONG).show();
+                nearBook.getData().remove(position);
+                adapter.notifyItemRemoved(position);
             }
         });
     }

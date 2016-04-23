@@ -21,6 +21,8 @@ import android.widget.Toast;
 import com.qmr777.exchange.MyApplication;
 import com.qmr777.exchange.R;
 import com.qmr777.exchange.activity.BookMsgAty;
+import com.qmr777.exchange.activity.FavoriteBook;
+import com.qmr777.exchange.activity.MyBookAty;
 import com.xys.libzxing.zxing.activity.CaptureActivity;
 
 import java.util.ArrayList;
@@ -59,16 +61,28 @@ public class Fragment4 extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         tv_username.setText(((MyApplication)getActivity().getApplication()).getUsername());
-        String[] strings = {"在换书籍","添加书籍","换出书籍","换入书籍","关注书籍"};
+        String[] strings = {"在换书籍", "添加书籍", "换出书籍", "换入书籍", "我的收藏"};
 
         listView.setAdapter(new ArrayAdapter<>(getActivity(),android.R.layout.simple_list_item_1,strings));
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent intent;
                 switch (position){
+                    case 0:
+                        intent = new Intent(getActivity(), MyBookAty.class);
+                        intent.putExtra("AtyTitle", "我的闲置");
+                        startActivity(intent);
+                        break;
                     case 1:
                         Toast.makeText(getActivity(),"扫描条形码以确定书籍",Toast.LENGTH_LONG).show();
-                        startActivityForResult(new Intent(getActivity(), CaptureActivity.class),0);
+                        intent = new Intent(getActivity(), CaptureActivity.class);
+                        startActivityForResult(intent, 0);
+                        break;
+                    case 4:
+                        intent = new Intent(getActivity(), FavoriteBook.class);
+                        intent.putExtra("AtyTitle", "我的收藏");
+                        startActivity(intent);
                 }
             }
         });

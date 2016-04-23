@@ -21,6 +21,17 @@
         android:layout_margin="16dp"
         android:src="@android:drawable/ic_menu_my_calendar" />
 
+    <android.support.design.widget.FloatingActionButton
+        app:backgroundTint="#ff4081"
+        android:layout_alignEnd="@+id/scrollView"
+        android:layout_alignParentBottom="true"
+        android:id="@+id/fab_favorite"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|bottom"
+        android:layout_margin="16dp"
+        android:src="@drawable/ic_favorite_outline_grey600_36dp" />
+
     <ScrollView
         android:id="@+id/scrollView"
         android:layout_width="match_parent"

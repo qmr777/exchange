@@ -67,16 +67,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         textViewList.add(tv1);
         textViewList.add(tv2);
         textViewList.add(tv3);
-
         tv1.setOnClickListener(this);
         tv2.setOnClickListener(this);
         tv3.setOnClickListener(this);
         fragmentManager = getSupportFragmentManager();
         frameLayout = (FrameLayout) findViewById(R.id.fl_show);
-        //new Thread(getLocation).start();
-        //Intent intent = new Intent(MainActivity.this, CaptureActivity.class);
+        setDefaultFragment();
+    }
 
 
+    @Override
+    protected void onStart() {
+
+
+        tv1.setOnClickListener(this);
+        tv2.setOnClickListener(this);
+        tv3.setOnClickListener(this);
+        fragmentManager = getSupportFragmentManager();
+        super.onStart();
         mLocationClient = new LocationClient(getApplicationContext());     //声明LocationClient类
         mLocationClient.registerLocationListener(new BDLocationListener() {
             @Override
@@ -95,13 +103,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         initLocation();
         mLocationClient.start();
 
-        setDefaultFragment();
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.actionbar_menu,menu);
-        SearchView searchView = (SearchView) menu.findItem(R.id.search_bar).getActionView();
         return true;
     }
 

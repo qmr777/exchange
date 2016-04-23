@@ -28,6 +28,7 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -36,13 +37,15 @@ import java.util.Date;
 import java.util.Locale;
 
 //需要intent包含一个isbn参数
+//图书详情
+//fab 添加，fab_favorite收藏
 
 public class BookMsgAty extends AppCompatActivity {
     ImageView imageView;
     TextView title,author,translator,isbn,rating,author_summary,book_summary,book_catalog;
     BookMsg bookMsg;
     ActionBar actionBar;
-    FloatingActionButton fab;
+    FloatingActionButton fab, fab_favorite;
     MyApplication myApplication;
     ScrollView scrollView;
     Boolean needCheck;//需要确认书Fragment4
@@ -60,6 +63,7 @@ public class BookMsgAty extends AppCompatActivity {
         book_summary = (TextView) findViewById(R.id.tv_book_summary);
         book_catalog = (TextView) findViewById(R.id.tv_book_catelog);
         fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab_favorite = (FloatingActionButton) findViewById(R.id.fab_favorite);
         actionBar = getSupportActionBar();
     }
 
@@ -72,6 +76,16 @@ public class BookMsgAty extends AppCompatActivity {
         actionBar.setDisplayHomeAsUpEnabled(true);
         if(!getIntent().getBooleanExtra("needCheck",false))
             fab.hide();
+        if (!getIntent().getBooleanExtra("needFavorite", false))
+            fab_favorite.hide();
+        fab_favorite.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (myApplication.ifLogin()) {
+                    new UserFavoriteBook().execute(getIntent().getStringExtra("isbn"));
+                }
+            }
+        });
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -118,6 +132,7 @@ public class BookMsgAty extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    //获取附近的书
     class GetBookMsgTask extends AsyncTask<String,Void,String>{
 
         @Override
@@ -161,7 +176,7 @@ public class BookMsgAty extends AppCompatActivity {
                     //Toast.makeText(BookMsgAty.this,bookMsg.getAlt_title(),Toast.LENGTH_SHORT).show();
                     title.setText(bookMsg.getTitle());
                     actionBar.setTitle(bookMsg.getTitle());
-                    new GetImageTask(imageView).execute(bookMsg.getImages().getLarge());
+                    new GetImageTask(BookMsgAty.this, imageView).execute(bookMsg.getImages().getLarge());
                     author.setText("作者 " + bookMsg.getAuthor().toString());
                     Log.d("BookMsgAty", bookMsg.getTranslator().size()+"");
                     if (bookMsg.getTranslator().size() == 0)
@@ -177,6 +192,61 @@ public class BookMsgAty extends AppCompatActivity {
                  Toast.makeText(BookMsgAty.this, "获取不到图书信息", Toast.LENGTH_SHORT).show();
                  finish();
              }
+        }
+    }
+
+    //用户收藏书
+    class UserFavoriteBook extends AsyncTask<String, Void, String> {
+
+        @Override
+        protected String doInBackground(String... params) {
+            String urls = "http://" + MyApplication.ServiceIP + ":8080/Exchange/User_favorite";
+            int user_id = myApplication.getUser_id();
+            String isbn13 = params[0];
+            try {
+                URL url = new URL(urls);
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("POST");
+                connection.setConnectTimeout(8000);
+                connection.setReadTimeout(8000);
+                OutputStream outputStream = connection.getOutputStream();
+                String data = "user_id=" + user_id + "&isbn13=" + isbn13;
+                outputStream.write(data.getBytes());
+                outputStream.flush();
+                outputStream.close();
+                connection.connect();
+                InputStream is = connection.getInputStream();
+                String s;
+                StringBuilder builder = new StringBuilder();
+                BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+                while ((s = reader.readLine()) != null)
+                    builder.append(s);
+                reader.close();
+                is.close();
+                return builder.toString();
+
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+            if (s != null) {
+                try {
+                    JSONObject jsonObject = new JSONObject(s);
+                    int errcode = jsonObject.getInt("errcode");
+                    if (errcode == 0) {
+                        Toast.makeText(BookMsgAty.this, "收藏成功", Toast.LENGTH_SHORT).show();
+                    } else
+                        Toast.makeText(BookMsgAty.this, jsonObject.getString("msg"), Toast.LENGTH_SHORT).show();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 }

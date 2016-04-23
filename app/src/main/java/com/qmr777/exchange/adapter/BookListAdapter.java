@@ -26,7 +26,6 @@ public class BookListAdapter extends RecyclerView.Adapter<BookListAdapter.MyView
     private onClickListener listener;
     private NearBook nearBook;
     private String[] strings;
-    HashMap<Integer,Bitmap > hashMap = new HashMap<>();
     LruCache<Integer,Bitmap> lruCache = new LruCache<>(30);
 
     public interface onClickListener{
@@ -54,8 +53,6 @@ public class BookListAdapter extends RecyclerView.Adapter<BookListAdapter.MyView
     @Override
     public void onBindViewHolder(final MyViewHolder holder, int position) {
 
-        //holder.textView.setText(nearBook.getData().get(position).getTitle());
-        //new GetImageTask(holder.imageView).execute(nearBook.getData().get(position).getMedium_img());
         if(strings != null) {
             holder.textView.setText(strings[position]);
         }
