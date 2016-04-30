@@ -19,17 +19,22 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.qmr777.exchange.MyApplication;
 import com.qmr777.exchange.R;
 import com.qmr777.exchange.adapter.BookListAdapter;
 import com.qmr777.exchange.model.MyBook;
 import com.qmr777.exchange.model.NearBook;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 
 public class FavoriteBook extends AppCompatActivity {
@@ -85,7 +90,7 @@ public class FavoriteBook extends AppCompatActivity {
         adapter.setListener(new BookListAdapter.onClickListener() {
             @Override
             public void onClick(View view, int position) {
-                Log.d("Fragment2", "click");
+                Log.d("Fragment2", position + "");
                 Intent intent = new Intent(FavoriteBook.this, BookMsgAty.class);
                 Log.d("FavoriteBook", nearBook.getData().get(position).getIsbn13());
                 intent.putExtra("isbn", nearBook.getData().get(position).getIsbn13());
@@ -97,13 +102,14 @@ public class FavoriteBook extends AppCompatActivity {
             @Override
             public void onLongClick(View view, int position) {
                 //长按回收
-                cancelPublish(nearBook.getData().get(position).getIsbn13(), nearBook.getData().get(position).getTitle());
+                Log.d("Fragment2", position + "");
+                cancelPublish(Integer.parseInt(nearBook.getData().get(position).getPublish_id()), nearBook.getData().get(position).getTitle());
 
             }
         });
     }
 
-    void cancelPublish(String isbn13, String title) {
+    void cancelPublish(final int publish_id, String title) {
         String sb = "确认取消对" + title + "的收藏吗?";
         AlertDialog.Builder builder = new AlertDialog.Builder(FavoriteBook.this);
         builder.setTitle("删除收藏")
@@ -113,7 +119,7 @@ public class FavoriteBook extends AppCompatActivity {
                 .setPositiveButton("删除", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        Toast.makeText(FavoriteBook.this, "删除", Toast.LENGTH_SHORT).show();
+                        new DeleteFavoriteBook().execute(publish_id, myApplication.getUser_id());
                     }
                 }).create().show();
 
@@ -174,6 +180,55 @@ public class FavoriteBook extends AppCompatActivity {
                 Toast.makeText(FavoriteBook.this, "获取不到数据", Toast.LENGTH_SHORT).show();
         }
     }
+
+    class DeleteFavoriteBook extends AsyncTask<Integer, Void, String> {
+
+        @Override
+        protected String doInBackground(Integer... params) {
+            String u = "http://" + MyApplication.ServiceIP + ":8080/Exchange/DeleteFavoriteBook";
+            try {
+                URL url = new URL(u);
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("POST");
+                connection.setReadTimeout(5000);
+                connection.setConnectTimeout(5000);
+                OutputStream os = connection.getOutputStream();
+                String data = "publish_id=" + params[0] + "&user_id=" + params[1];
+                os.write(data.getBytes());
+                os.flush();
+                os.close();
+                InputStream is = connection.getInputStream();
+                String s;
+                StringBuilder builder = new StringBuilder();
+                BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+                while ((s = reader.readLine()) != null)
+                    builder.append(s);
+                is.close();
+                reader.close();
+                return builder.toString();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+            if (s != null && !s.isEmpty()) {
+                try {
+                    JSONObject jsonObject = new JSONObject(s);
+                    if (jsonObject.getInt("errcode") == 0)
+                        Toast.makeText(FavoriteBook.this, "取消收藏成功", Toast.LENGTH_SHORT).show();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            } else
+                Toast.makeText(FavoriteBook.this, "取消收藏失败", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+
 
 
 }

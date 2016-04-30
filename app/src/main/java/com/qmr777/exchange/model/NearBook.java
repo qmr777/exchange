@@ -42,6 +42,16 @@ public class NearBook {
         private String medium_img;
         private String isbn13;
 
+        public String getPublish_id() {
+            return publish_id;
+        }
+
+        public void setPublish_id(String publish_id) {
+            this.publish_id = publish_id;
+        }
+
+        private String publish_id;
+
         public String getTitle() {
             return title;
         }

@@ -92,6 +92,12 @@ public class Fragment2 extends Fragment {
     public void updateData(){
         adapter = new BookListAdapter(nearBook);
         recyclerView.setAdapter(adapter);
+        recyclerView.setOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+            }
+        });
 
         adapter.setListener(new BookListAdapter.onClickListener() {
             @Override
@@ -99,6 +105,7 @@ public class Fragment2 extends Fragment {
                 Log.d("Fragment2","click");
                 Intent intent = new Intent(getActivity(),BookMsgAty.class);
                 intent.putExtra("isbn",nearBook.getData().get(position).getIsbn13());
+                intent.putExtra("publish_id", nearBook.getData().get(position).getPublish_id());
                 if (myApplication.ifLogin())
                     intent.putExtra("needFavorite", true);
                 startActivity(intent);

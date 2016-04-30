@@ -5,6 +5,8 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -40,10 +42,36 @@ public class Fragment3 extends Fragment {
     EditText username,password;
     TextView register,lostpswd;
     Button login,scanner;
+    Handler mhandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            afterLogin((String) msg.obj);
+        }
+    };
 
 
     public Fragment3() {
         // Required empty public constructor
+    }
+
+    void afterLogin(String s) {
+        try {
+            JSONObject jsonObject = new JSONObject(s);
+            if (jsonObject.getString("errcode").equals("0")) {
+                ((MyApplication) getActivity().getApplication()).setUsername(jsonObject.getString("username"));
+                ((MyApplication) getActivity().getApplication()).setUser_id(Integer.parseInt(jsonObject.getString("user_id")));
+                ((MyApplication) getActivity().getApplication()).setIfLogin(true);
+                ((activityAct) getActivity()).doSth(1);
+            } else {
+                ((MyApplication) getActivity().getApplication()).setIfLogin(false);
+                Toast.makeText(getActivity(), "用户名/密码错误", Toast.LENGTH_SHORT).show();
+                password.setText("");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 
@@ -71,7 +99,8 @@ public class Fragment3 extends Fragment {
                     Toast.makeText(getActivity(),"用户名/密码 不能为空",Toast.LENGTH_SHORT).show();
                 }
                 else
-                    new LoginTask().execute(username.getText().toString(),password.getText().toString());
+                    //new LoginTask().execute(username.getText().toString(),password.getText().toString());
+                    new Thread(loginRunn).start();
 /*                Intent intent = new Intent(getActivity(), BookMsgAty.class);
                 intent.putExtra("isbn","9787111128069");
                 startActivity(intent);*/
@@ -98,6 +127,43 @@ public class Fragment3 extends Fragment {
             startActivity(intent);
         }
     }
+
+    Runnable loginRunn = new Runnable() {
+        String name, pswd;
+
+        @Override
+        public void run() {
+            this.name = username.getText().toString();
+            this.pswd = password.getText().toString();
+            Log.d("Fragment3", "login " + username);
+            try {
+                String urlS = "http://" + MyApplication.ServiceIP + ":8080/Exchange/login";
+                URL url = new URL(urlS);
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("POST");
+                OutputStream outputStream = connection.getOutputStream();
+                String data = "username=" + name + "&&password=" + pswd;
+                outputStream.write(data.getBytes());
+                outputStream.flush();
+                outputStream.close();
+                connection.connect();
+                InputStream is = connection.getInputStream();
+                BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+                String s;
+                StringBuilder builder = new StringBuilder();
+                while ((s = reader.readLine()) != null)
+                    builder.append(s);
+                reader.close();
+                connection.disconnect();
+                //return builder.toString();
+                Message message = Message.obtain();
+                message.obj = builder.toString();
+                mhandler.sendMessage(message);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    };
 
     class LoginTask extends AsyncTask<String,Void,String>{
         String username,pswd;

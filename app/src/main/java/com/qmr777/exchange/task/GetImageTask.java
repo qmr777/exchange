@@ -12,6 +12,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 
 import com.qmr777.exchange.R;
+import com.qmr777.exchange.util.BitmapUtil;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -42,20 +43,7 @@ public class GetImageTask extends AsyncTask<String,Void,Bitmap> {
     @Override
     protected Bitmap doInBackground(String... params) {
         Log.d("GetImageTask","GetImage "+params[0]);
-        try {
-            URL url = new URL(params[0]);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setConnectTimeout(5000);
-            connection.setReadTimeout(5000);
-            InputStream is = connection.getInputStream();
-            Bitmap bitmap = BitmapFactory.decodeStream(is);
-            is.close();
-            connection.disconnect();
-            return bitmap;
-        } catch (Exception e){
-            e.printStackTrace();
-        }
-        return null;
+        return BitmapUtil.getInstance().GetHttpBitmap(params[0]);
     }
 
     @Override

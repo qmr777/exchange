@@ -73,14 +73,14 @@ public class BookListAdapter extends RecyclerView.Adapter<BookListAdapter.MyView
                 @Override
                 public void onClick(View v) {
                     Log.d("Fragment2","onClick");
-                    listener.onClick(holder.itemView,holder.getAdapterPosition());
+                    listener.onClick(holder.itemView, holder.getPosition());
                 }
             });
 
             holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    listener.onLongClick(holder.itemView,holder.getAdapterPosition());
+                    listener.onLongClick(holder.itemView, holder.getPosition());
                     return false;
                 }
             });

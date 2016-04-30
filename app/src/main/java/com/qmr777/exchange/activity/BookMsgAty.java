@@ -1,5 +1,6 @@
 package com.qmr777.exchange.activity;
 
+import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.support.design.widget.FloatingActionButton;
@@ -16,11 +17,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
+import com.google.gson.internal.Streams;
 import com.qmr777.exchange.MyApplication;
 import com.qmr777.exchange.R;
 import com.qmr777.exchange.model.BookMsg;
 import com.qmr777.exchange.task.GetImageTask;
 import com.qmr777.exchange.task.PushDataToServiceTask;
+import com.qmr777.exchange.util.BitmapUtil;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -73,6 +76,7 @@ public class BookMsgAty extends AppCompatActivity {
         setContentView(R.layout.activity_book_msg_aty);
         initView();
 
+
         actionBar.setDisplayHomeAsUpEnabled(true);
         if(!getIntent().getBooleanExtra("needCheck",false))
             fab.hide();
@@ -82,7 +86,7 @@ public class BookMsgAty extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (myApplication.ifLogin()) {
-                    new UserFavoriteBook().execute(getIntent().getStringExtra("isbn"));
+                    new UserFavoriteBook().execute(getIntent().getStringExtra("isbn"), getIntent().getStringExtra("publish_id"));
                 }
             }
         });
@@ -172,15 +176,29 @@ public class BookMsgAty extends AppCompatActivity {
                 if(bookMsg.getIsbn10().isEmpty()&&bookMsg.getIsbn13().isEmpty())
                     Toast.makeText(BookMsgAty.this,"获取不到图书信息",Toast.LENGTH_SHORT).show();
                 else {
+                    BitmapUtil.getInstance().GetHttpBitmap(bookMsg.getImages().getLarge(), new BitmapUtil.afterGetImage() {
+                        @Override
+                        public void loadImageSuccess(Bitmap bitmap) {
+                            imageView.setImageBitmap(bitmap);
+                            //imageView.setImageBitmap(BitmapUtil.getInstance().GetThumbnail(bitmap,100,100));
+                        }
+
+                        @Override
+                        public void loadImageFailed() {
+                            Bitmap b = BitmapUtil.getInstance().GetResourceBitmap
+                                    (BookMsgAty.this, R.drawable.ic_favorite_outline_grey600_36dp);
+                            imageView.setImageBitmap(b);
+                        }
+                    });
+                    //BitmapUtil.getInstance().GetHttpBitmap(bookMsg.getImages().getLarge(),null);
                     Log.d("BookMsgAty", bookMsg.getOrigin_title());
                     //Toast.makeText(BookMsgAty.this,bookMsg.getAlt_title(),Toast.LENGTH_SHORT).show();
                     title.setText(bookMsg.getTitle());
                     actionBar.setTitle(bookMsg.getTitle());
-                    new GetImageTask(BookMsgAty.this, imageView).execute(bookMsg.getImages().getLarge());
+                    //new GetImageTask(BookMsgAty.this, imageView).execute(bookMsg.getImages().getLarge());
                     author.setText("作者 " + bookMsg.getAuthor().toString());
                     Log.d("BookMsgAty", bookMsg.getTranslator().size()+"");
-                    if (bookMsg.getTranslator().size() == 0)
-                        translator.setText("翻译 " + bookMsg.getTranslator().toString());
+                    translator.setText("翻译 " + bookMsg.getTranslator().toString());
                     isbn.setText("isbn " + bookMsg.getIsbn13());
                     rating.setText("评分 " + bookMsg.getRating().getAverage());
                     author_summary.setText("作者简介\r\n" + bookMsg.getAuthor_intro());
@@ -203,6 +221,7 @@ public class BookMsgAty extends AppCompatActivity {
             String urls = "http://" + MyApplication.ServiceIP + ":8080/Exchange/User_favorite";
             int user_id = myApplication.getUser_id();
             String isbn13 = params[0];
+            String publish_id = params[1];
             try {
                 URL url = new URL(urls);
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -210,7 +229,7 @@ public class BookMsgAty extends AppCompatActivity {
                 connection.setConnectTimeout(8000);
                 connection.setReadTimeout(8000);
                 OutputStream outputStream = connection.getOutputStream();
-                String data = "user_id=" + user_id + "&isbn13=" + isbn13;
+                String data = "user_id=" + user_id + "&isbn13=" + isbn13 + "&publish_id=" + publish_id;
                 outputStream.write(data.getBytes());
                 outputStream.flush();
                 outputStream.close();
